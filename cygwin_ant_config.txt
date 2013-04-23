@@ -1,2 +1,10 @@
+For ANT in Cygwin
 export ANT_HOME=/cygdrive/c/apache-ant-1.9.0
 export PATH=$ANT_HOME/bin:$PATH
+
+For MVN in Cygwin
+export MVN_HOME=/cygdrive/c/apache-maven-2.2.1/
+export PATH=$MVN_HOME/bin:$PATH
+
+For JAVA_HOME in Cygwin
+export JAVA_HOME=/cygdrive/c/Program\ Files/Java/jdk1.7.0_21
