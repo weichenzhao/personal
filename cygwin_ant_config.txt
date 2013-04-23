@@ -1,0 +1,2 @@
+export ANT_HOME=/cygdrive/c/apache-ant-1.9.0
+export PATH=$ANT_HOME/bin:$PATH
