@@ -1,0 +1,33 @@
+1. Brief
+2. Background
+   2.1 OpenFlow & SDN
+       2.1.1 Concept
+       2.1.2 Application
+   2.2 Controller(POX)
+       2.2.1 What is Controller
+       2.2.2 What is POX
+       2.2.3 Controller in SDN
+   2.3 WebUI(POXDesk)
+       2.3.1 UI/WebUI
+       2.3.2 What is POXDesk
+       2.3.3 UI in SDN
+   2.4 Host tracker in legacy Network
+3. Design
+   3.1 Host Tracker on Controller
+       3.1.1 Event system
+       3.1.2 Getting Info
+             3.1.2.1 From Port Status
+             3.1.2.2 From DHCP & Pakcet In
+       3.1.3 Keep track of hosts
+             3.1.3.1 Data strcture
+             3.1.3.2 API
+             3.1.3.3 
+   3.2 WebUI Design
+       3.2.1 Communication with Controller
+       3.2.2 
+   3.3 
+4. Work
+   4.1 Controller App
+   4.2 WebUI
+5. Assessment
+6. Conclusion
