@@ -1,20 +1,22 @@
 1. Brief
-2. Background
+2. Background[前言]
+   2.0 Legacy netowrk
    2.1 OpenFlow & SDN
-       2.1.1 Concept
-       2.1.2 Application
+       2.1.1 Concept(of1.0/nick paper)
+       2.1.2 Application(google/my summary)
    2.2 Controller(POX)
-       2.2.1 What is Controller
-       2.2.2 What is POX
-       2.2.3 Controller in SDN
+       2.2.1 What is Controller(from controller analysis)
+       2.2.2 What is POX(pox wiki)
+       2.2.3 Controller in SDN(controller analysis)
    2.3 WebUI(POXDesk)
-       2.3.1 UI/WebUI
-       2.3.2 What is POXDesk
+       2.3.1 UI/WebUI(murphy blog/floodlight help page)
+       2.3.2 What is POXDesk(poxdesk git page/murphy blog)
        2.3.3 UI in SDN
-   2.4 Host tracker in legacy Network
+   2.4 Host tracker(主机状态跟踪的意义) 
+   2.5 Host tracker in legacy Network(传统网络中的主机跟踪)
 3. Design
    3.1 Host Tracker on Controller
-       3.1.1 Event system
+       3.1.1 Event system(my blog)
        3.1.2 Getting Info
              3.1.2.1 From Port Status
              3.1.2.2 From DHCP & Pakcet In
