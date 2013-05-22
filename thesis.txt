@@ -12,8 +12,8 @@
        2.3.1 UI/WebUI(murphy blog/floodlight help page)
        2.3.2 What is POXDesk(poxdesk git page/murphy blog)
        2.3.3 UI in SDN
-   2.4 Host tracker(主机状态跟踪的意义) 
-   2.5 Host tracker in legacy Network(传统网络中的主机跟踪)
+   2.4 Tracker in POX(and 主机状态跟踪的意义) 
+       2.4.1 Question with old ways(not real time, cost of ping packet)
 3. Design
    3.1 Host Tracker on Controller
        3.1.1 Event system(my blog)
@@ -28,8 +28,10 @@
        3.2.1 Communication with Controller
        3.2.2 
    3.3 
-4. Work
+4. Implementation
    4.1 Controller App
    4.2 WebUI
 5. Assessment
+   5.1 Scenario
+   5.2 Test
 6. Conclusion
