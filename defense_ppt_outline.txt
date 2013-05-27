@@ -7,7 +7,7 @@ using ping/tracerout(tracert in win). It seems there is nothing can tell us
 what is wrong in real time.
 
 1.1 So, What should we do?
-My paper does that.
+My paper does this and that.
 [things in paper]
 [demo]
 
@@ -15,3 +15,5 @@ My paper does that.
 2. DHCP is just one example, showing that OpenFlow controller can do more.
 Say, if one DCN uses static IP allocation method. To do the same thing as my paper presents, one just need to change the DHCP code into analysis of other protocol(s). Or, I can make it different module to fit in different network management model. 
 
+3. What should I prepare?
+   a.How DHCP works
