@@ -1,6 +1,5 @@
 1. Brief
 2. Background[前言]
-   2.0 Legacy netowrk
    2.1 OpenFlow & SDN
        2.1.1 Concept(of1.0/nick paper)
        2.1.2 Application(google/my summary)
@@ -8,7 +7,7 @@
        2.2.1 What is Controller(from controller analysis)
        2.2.2 What is POX(pox wiki)
        2.2.3 Controller in SDN(controller analysis)
-   2.3 WebUI(POXDesk)
+   2.3 GUI/WebUI(POXDesk)
        2.3.1 UI/WebUI(murphy blog/floodlight help page)
        2.3.2 What is POXDesk(poxdesk git page/murphy blog)
        2.3.3 UI in SDN
