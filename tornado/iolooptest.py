@@ -6,7 +6,7 @@ import socket
 import openflow_header as of
 
 def connection_ready(sock, fd, events):
-    while True:
+    #while True:
         try:
             connection, address = sock.accept()
         except socket.error, e:
@@ -16,16 +16,18 @@ def connection_ready(sock, fd, events):
         connection.setblocking(0)
         handle_connection(connection, address)
         stream = iostream.IOStream(connection)
-        print stream
-        stream.read_bytes(1024, print_on_screen)
+        stream.read_bytes(8, print_on_screen)
+        #generate a openflow message. by default, it's a OFP_HELLO msg
         msg = of.ofp_header()
-        #msg.show()
+        
+        #the 'stream.write' needs string
         stream.write(str(msg))
         print "send OFP_HELLO"
 
 def print_on_screen(data):
     print "received something"
-    print data
+    rmsg = of.ofp_header(data)
+    rmsg.show()
 
 def handle_connection(connection, address):
         print "1 connection,", connection, address
