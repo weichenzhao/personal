@@ -1,7 +1,7 @@
 #!/bin/bash
 
-USER="richard" #用户名
-PASSWORD="lekvbzrd159753" #密码
+USER="*******" #用户名
+PASSWORD="***************" #密码
 DBNAME="richardzhao" #数据库名称
 TABLENAME="wp_statpress" #数据库中表的名称
 FILENAME=[MySQL_Data_Statepress]
