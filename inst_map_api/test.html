@@ -1,0 +1,25 @@
+<html>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.4.2.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+  $("#b01").click(function(){
+input_tag=document.getElementById("tag").value;
+$.ajax({
+        type: "GET",
+        dataType: "jsonp",
+        cache: false,
+	url: "https://api.instagram.com/v1/tags/"+input_tag+"/media/recent?client_id=[id]&access_token=[token]",
+        success: function(data) {
+$("#pics").html("");
+for (var i = 0; i < 10; i++) {
+$("#pics").append("<a target='_blank' href='" + data.data[i].link +
+"'><img src='" + data.data[i].images.low_resolution.url +"'></img></a>");
+}
+}
+    });
+});
+});
+</script>
+<div><button id="b01" type="button">get pics</button><input id="tag"/></div>
+<div id="pics">there should be some pics</div>
+</html>

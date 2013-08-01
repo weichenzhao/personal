@@ -1,0 +1,68 @@
+<!doctype html> 
+<html> 
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" /> 
+		<title>Google Map V3</title> 
+		<link href="http://code.google.com/apis/maps/documentation/javascript/examples/default.css" rel="stylesheet" type="text/css" />
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.4.2.min.js"></script> 
+		<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"> 
+		<!-- add google map api --> 
+		</script> 
+	</head> 
+	<body onload="initialize()"> 
+		<div id="map" style="width: 600px; height: 400px;"> </div> 
+		<div id="conteng">经纬度：<span id="j"></span></div>
+		<div id="pics">there should be some pics</div>
+	</body> 
+</html> 
+
+<script type="text/javascript">
+var map;
+var lanlngs = new google.maps.LatLng(39.98003456460086, 116.35696828365326);
+var info;
+var markers=[];
+function initialize(){
+	var mapOption = {
+			zoom:9,
+			center:lanlngs,
+			mapTypeId: google.maps.MapTypeId.ROADMAP,
+			title: "选为地址"
+			}
+	map = new google.maps.Map(document.getElementById('map'),mapOption);
+	google.maps.event.addListener(map, 'click', function(event) {
+		addMarker(event.latLng);
+	});
+}
+
+function addMarker(location) {
+	for(i in markers){
+		markers[i].setMap(null);
+	}
+	marker = new google.maps.Marker({
+		position: location,
+		map: map
+	});
+	var center = marker.getPosition();
+	markers.push(marker);
+	info = marker.getPosition();
+	document.getElementById('j').innerHTML=info;
+	getPic(info)
+	
+}
+
+function getPic(info){
+	$.ajax({
+        type: "GET",
+        dataType: "jsonp",
+        cache: false,
+        url: "https://api.instagram.com/v1/media/search?lat="+info.lat()+"&lng="+info.lng()+"&distance=50000?client_id=[id]&access_token=[token]",
+		success: function(data) {
+			$("#pics").html("");
+			for (var i = 0; i < 10; i++) {
+				$("#pics").append("<a target='_blank' href='" + data.data[i].link +"'><img src='" + data.data[i].images.low_resolution.url +"'></img></a>");
+			}
+		}
+    });
+}
+</script>
