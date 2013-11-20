@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# coding: iso-8859-15 
 '''You are helping to run a high-performance computing system capable of processing several terabytes 
 of data per day. For each of n days, you are presented with a quantity of data: on day t, you're 
 presented with xt terabytes. For each terabyte you process, you receive a fixed revenue, but any 
@@ -32,3 +34,4 @@ if __name__ == "__main__":
     test([0,0,10,10,10], [9,4,3,2,1])
     test([10,0,10,0,10], [9,4,3,2,1])
     test([10,1,7,7], [8,4,2,1])
+    test([10,0,10,500,10], [500,4,3,2,1])
