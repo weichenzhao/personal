@@ -10,6 +10,13 @@ syntax on
 "Loading tags
 set tags=./tags
 
+"set colorschme
+colorscheme desert
+
+"set highlight
+se cursorline
+highlight cursorline ctermbg=darkgray cterm=NONE
+
 """"""""""""""""""""""""""""""
 " Tag list (ctags)
 """"""""""""""""""""""""""""""
