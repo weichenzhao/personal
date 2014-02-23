@@ -1,0 +1,52 @@
+\documentclass[xcolor=dvipsnames]{beamer} %文档类型声明
+\title[test]{testing for beamer package}
+\subtitle[sub]{introduction and use cases}
+\author[richard]{Richard Zhao}
+
+\usetheme{Copenhagen}  %使用主题
+%参考主题列表: http://deic.uab.es/~iblanes/beamer_gallery/index_by_theme.html
+%\usecolortheme[named=Maroon]{structure} %设定主题颜色
+
+\begin{document}
+
+\AtBeginSection[]
+{
+	\begin{frame}
+		\frametitle{Outline}
+		\tableofcontents[currentsection]
+	\end{frame}
+}
+
+\AtBeginSubsection[]
+{
+	\begin{frame}
+		\frametitle{Outline}
+		\tableofcontents[currentsubsection]
+	\end{frame}
+}
+
+
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\section{Introduction}
+\subsection{first}
+\begin{frame}{Graphics}
+The \emph{grammer of graphics} was devised by Leland Wilkinson to provide a description of the basic element that comprise a statistical graph. This grammer is used to {\color{blue}transfer} (map) from data to geometric shapes (objects) and describes the attributes of these objects (aesthetics).
+
+\alert{Hadley Wickham} has developed a package for \textbf{R} that is based on the grammer described by Leland Wilkinson.
+\end{frame}
+
+\subsection{second}
+\begin{frame}{Graphics}
+
+\end{frame}
+
+\section{Basic Graphs}
+\begin{frame}{Bar Charts}
+
+\end{frame}
+
+\end{document}
