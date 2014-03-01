@@ -1,7 +1,11 @@
 obj-m += filter.o
 
+KERNELDIR := /home/richard//ptxdist/linux-3.0/
+PWD := $(shell pwd)
+
+
 all:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+	make -C $(KERNELDIR) M=$(PWD) modules
 
 clean:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+	make -C $(KERNELDIR) M=$(PWD) clean
