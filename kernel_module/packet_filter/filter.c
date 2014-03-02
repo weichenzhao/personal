@@ -3,12 +3,20 @@
 #include <linux/init.h>      // included for __init and __exit macros
 #include <linux/netfilter.h>
 #include <linux/vmalloc.h>
+#include <linux/types.h>     // included for __be32 type
 
 #include <linux/netfilter_ipv4.h>
+#include <linux/ip.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Richard Zhao");
 MODULE_DESCRIPTION("Simple Packet Filter");
+
+#define NIPQUAD(addr) \
+  ((unsigned char *)&addr)[0], \
+  ((unsigned char *)&addr)[1], \
+  ((unsigned char *)&addr)[2], \
+  ((unsigned char *)&addr)[3]  
 
 static struct nf_hook_ops nfho;
 
@@ -17,9 +25,17 @@ unsigned int hook_for_pkt(unsigned int hooknum,
 		          const struct net_device *in,
 		          const struct net_device *out,
 		          int (*okfn)(struct sk_buff *)){
+	struct iphdr *iph=ip_hdr(skb);
 	struct sock *sk = skb->sk;
-
-	printk("Hello packet! %d, %d\n", skb->data - skb->head, skb->len);
+	__be32 sip,dip;
+	sip = iph->saddr;  
+	dip = iph->daddr;
+	//iph=(*skb).network_header;
+	//if(iph->protocol == IPPROTO_TCP){
+	//	printk("TCP packet received %d, %d\n", skb->data - skb->head, skb->len);
+	//}
+	printk("Packet for source address: %d.%d.%d.%d destination address: %d.%d.%d.%d\n", NIPQUAD(sip), NIPQUAD(dip));
+	//printk("Hello packet! %d, %d\n", skb->data - skb->head, skb->len);
 	return NF_ACCEPT;
 }
 
