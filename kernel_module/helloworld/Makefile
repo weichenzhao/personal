@@ -6,8 +6,9 @@ obj-m += hello-5.o
 obj-m += startstop.o
 startstop-objs := start.o stop.o
 
-KERNELDIR := /home/richard//ptxdist/linux-3.0/
+KERNELDIR := /home/richard/ptxdist/linux-3.0/
 PWD := $(shell pwd)
+VERSION = 3.0.0-pengutronix
 
 
 all:
