@@ -20,4 +20,6 @@ In `linux/netfilter_ipv4.h`, IP hooks' definition are listed as follow:
 ##Reference
 [1] https://github.com/jvns/kernel-module-fun  
 [2] By Shawn the R0ck, http://kernelnewbies.org/Networking?action=AttachFile&do=get&target=hacking_the_wholism_of_linux_net.txt  
-[3] Netfilter Architecture of Linux 2.4, http://www.6test.edu.cn/~lujx/linux_networking/index.html?page=0131777203_ch19lev1sec3.html
+[3] Netfilter Architecture of Linux 2.4, http://www.6test.edu.cn/~lujx/linux_networking/index.html?page=0131777203_ch19lev1sec3.html  
+[4] Netfilter Source Code Analysis http://staff.ustc.edu.cn/~james/linux/netfilter-1.html  
+[5] Socket Buffer Data Layout by David S. Miller http://vger.kernel.org/~davem/skb_data.html  
