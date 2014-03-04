@@ -8,7 +8,7 @@ set number
 syntax on
 
 "Loading tags
-set tags=./tags
+set tags=./tags,tags;$HOME
 
 "set colorschme
 colorscheme desert
