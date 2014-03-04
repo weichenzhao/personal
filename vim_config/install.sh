@@ -27,4 +27,8 @@ if [ ! -d "$Path" ]; then
 	unzip taglist.zip
 	mv doc ~/.vim/
 	mv plugin ~/.vim
+	cd ..
 fi
+
+#vimrc settings
+sudo cp vimrc /etc/vim/
