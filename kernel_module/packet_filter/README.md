@@ -8,14 +8,14 @@ The packet filtering architecture of Linux 2.4 (netfilter):
 
 In `linux/netfilter_ipv4.h`, IP hooks' definition are listed as follow:  
 
-| Hooks                 | Num   | Discription                                       |
-| --------------------- |:-----:| ------------------------------------------------- |
-| NF\_IP\_PRE_ROUTING   | 0     | After promisc drops, checksum checks.             |
-| NF\_IP\_LOCAL_IN      | 1     | If the packet is destined for this box.           |
-| NF\_IP\_FORWARD       | 2     | If the packet is destined for another interface.  |
-| NF\_IP\_LOCAL_OUT     | 3     | Packets coming from a local process.              |
-| NF\_IP\_POST_ROUTING  | 4     | Packets coming from a local process.              |
-| NF\_IP\_NUMHOOKS      | 5     |                                                   |
+| Hooks                 | Num   | Discription                                      |
+| --------------------- |:-----:| ------------------------------------------------ |
+| NF\_IP\_PRE_ROUTING   | 0     | After promisc drops, checksum checks             |
+| NF\_IP\_LOCAL_IN      | 1     | If the packet is destined for this box           |
+| NF\_IP\_FORWARD       | 2     | If the packet is destined for another interface  |
+| NF\_IP\_LOCAL_OUT     | 3     | Packets coming from a local process              |
+| NF\_IP\_POST_ROUTING  | 4     | Packets about to hit the wire                    |
+| NF\_IP\_NUMHOOKS      | 5     |                                                  |
 
 ##Reference
 [1] https://github.com/jvns/kernel-module-fun  
