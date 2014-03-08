@@ -1,7 +1,12 @@
 #Simple Kernel Module For Packet Filtering
-----
+
 ##IP Hooks in netfilter
-In netfilter_ipv4.h, IP Hooks definition are listed as follow:
+
+The packet filtering architecture of Linux 2.4 (netfilter):  
+![center](https://raw.github.com/09zwcbupt/personal/master/kernel_module/packet_filter/netfilter.gif)
+
+
+In `linux/netfilter_ipv4.h`, IP hooks' definition are listed as follow:  
 
 | Hooks                 | Num   | Discription                                       |
 | --------------------- |:-----:| ------------------------------------------------- |
@@ -12,9 +17,7 @@ In netfilter_ipv4.h, IP Hooks definition are listed as follow:
 | NF\_IP\_POST_ROUTING  | 4     | Packets coming from a local process.              |
 | NF\_IP\_NUMHOOKS      | 5     |                                                   |
 
-The packet filtering architecture of Linux 2.4 (netfilter): 
-![center](https://github.com/09zwcbupt/personal/blob/master/kernel_module/packet_filter/netfilter.gif)
-
+##Reference
 [1] https://github.com/jvns/kernel-module-fun  
-[2] By Shawn the R0ck, http://kernelnewbies.org/Networking?action=AttachFile&do=get&target=hacking_the_wholism_of_linux_net.txt
-
+[2] By Shawn the R0ck, http://kernelnewbies.org/Networking?action=AttachFile&do=get&target=hacking_the_wholism_of_linux_net.txt  
+[3] Netfilter Architecture of Linux 2.4, http://www.6test.edu.cn/~lujx/linux_networking/index.html?page=0131777203_ch19lev1sec3.html
