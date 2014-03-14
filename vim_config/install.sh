@@ -11,7 +11,7 @@ fi
 cd ctags-5.8
 ./configure
 make
-#sudo make install
+sudo make install
 cd ..
 
 #check .vim folder
