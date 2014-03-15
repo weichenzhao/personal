@@ -14,6 +14,7 @@
 
 #include <linux/netfilter_ipv4.h>
 #include <linux/ip.h>
+#include <linux/if_ether.h>//for ether header
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Richard Zhao");
@@ -52,6 +53,7 @@ static int Device_Open = 0;	/* Is device open?
 static char msg[BUF_LEN];	/* The msg the device will give when asked */
 static char *msg_Ptr;	/*pointer used to transfer to userspace*/
 struct sk_buff *skb_copy_pkt = NULL;//pointer for copy of skb_buffer
+int first = 0; //test use, for copy packet
 
 static struct file_operations fops = {
 	.read = device_read,
@@ -74,10 +76,13 @@ unsigned int hook_for_pkt(unsigned int hooknum,
         dip = iph->daddr;
 		/*first should use a filter/hash to do sampling*/
 
-		int first = 0;
-		if (!first){
+		if (first == 0){
 		/*if decide to sample, copy the skb_buffer*/
 			skb_copy_pkt = skb_copy(skb, GFP_KERNEL);//gfp_t -> kernel memory allocation, in /usr/src/linux-3.12.13/include/linux/gfp.h
+            printk("copy packet, data: %p, %p\n", skb->mac_header, skb_transport_header(skb));
+			//printk("copy packet, data: %s\n", skb_transport_header(skb)->h_dest);
+			printk("copy packet, data: %d, eth:%p, eth->et:%p, diff:%p\n", eth_hdr(skb)->h_proto, eth_hdr(skb), &eth_hdr(skb)->h_proto, eth_hdr(skb)-(eth_hdr(skb)->h_proto));
+            printk("copy packet, data size: %d, %d\n", skb->len, skb_copy_pkt->len);
 			first += 1;
 		}
 		//defination of skb_copy: struct sk_buff *skb_copy(const struct sk_buff *skb, gfp_t gfp_mask)
@@ -115,12 +120,12 @@ int init_module(void)
 	  return Major;
 	}
 
-	printk(KERN_INFO "I was assigned major number %d. To talk to\n", Major);
-	printk(KERN_INFO "the driver, create a dev file with\n");
-	printk(KERN_INFO "'mknod /dev/%s c %d 0'.\n", DEVICE_NAME, Major);
-	printk(KERN_INFO "Try various minor numbers. Try to cat and echo to\n");
-	printk(KERN_INFO "the device file.\n");
-	printk(KERN_INFO "Remove the device file and module when done.\n");
+	printk("I was assigned major number %d. To talk to\n", Major);
+	printk("the driver, create a dev file with\n");
+	printk("'mknod /dev/%s c %d 0'.\n", DEVICE_NAME, Major);
+	printk("Try various minor numbers. Try to cat and echo to\n");
+	printk("the device file.\n");
+	printk("Remove the device file and module when done.\n");
 
 	return SUCCESS;
 }
@@ -190,12 +195,14 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 			   size_t length,	/* length of the buffer     */
 			   loff_t * offset)
 {
-	//if(skb_copy_pkt != NULL){
-		unsigned int size = skb_copy_pkt->data_len;
-		msg_Ptr = skb_copy_pkt;
-		//copy_to_user(buffer, skb_copy_pkt->data, size);
+		unsigned int size = 0;
+	if(skb_copy_pkt != NULL){
+		printk("Received read request from user space, now have skb data length: %d\n", skb_copy_pkt->len);
+		size = skb_copy_pkt->len;
+		msg_Ptr = eth_hdr(skb_copy_pkt);//mac_header;
+		//copy_to_user(buffer, skb_copy_pkt->head, size);
 		//return size;
-	//}
+	}
 	//return simple_read_from_buffer(filp, size, offset, skb_copy_pkt, size);
 	/*
 	 * Number of bytes actually written to the buffer 
@@ -213,8 +220,9 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 	/* 
 	 * Actually put the data into the buffer 
 	 */
-	while (length && *msg_Ptr) {
-
+	//while (length && *msg_Ptr) {
+	//只要有0酒不继续了....  = =
+	while (length && size) {
 		/* 
 		 * The buffer is in the user data segment, not the kernel 
 		 * segment so "*" assignment won't work.  We have to use 
@@ -224,6 +232,7 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 		put_user(*(msg_Ptr++), buffer++);
 
 		length--;
+		size--;
 		bytes_read++;
 	}
 
