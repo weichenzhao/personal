@@ -50,7 +50,8 @@ static int Major;		/* Major number assigned to our device driver */
 static int Device_Open = 0;	/* Is device open?  
 				 * Used to prevent multiple access to device */
 static char msg[BUF_LEN];	/* The msg the device will give when asked */
-static char *msg_Ptr;
+static char *msg_Ptr;	/*pointer used to transfer to userspace*/
+struct sk_buff *skb_copy_pkt = NULL;//pointer for copy of skb_buffer
 
 static struct file_operations fops = {
 	.read = device_read,
@@ -67,15 +68,18 @@ unsigned int hook_for_pkt(unsigned int hooknum,
                           const struct net_device *in,
                           const struct net_device *out,
                           int (*okfn)(struct sk_buff *)){
-		struct sk_buff *skb_copy_pkt = NULL;//pointer for copy of skb_buffer
         struct iphdr *iph=ip_hdr(skb);
         struct sock *sk = skb->sk;
         sip = iph->saddr;     
         dip = iph->daddr;
 		/*first should use a filter/hash to do sampling*/
 
+		int first = 0;
+		if (!first){
 		/*if decide to sample, copy the skb_buffer*/
-		skb_copy_pkt = skb_copy(skb, GFP_KERNEL);//gfp_t -> kernel memory allocation, in /usr/src/linux-3.12.13/include/linux/gfp.h
+			skb_copy_pkt = skb_copy(skb, GFP_KERNEL);//gfp_t -> kernel memory allocation, in /usr/src/linux-3.12.13/include/linux/gfp.h
+			first += 1;
+		}
 		//defination of skb_copy: struct sk_buff *skb_copy(const struct sk_buff *skb, gfp_t gfp_mask)
         //iph=(*skb).network_header;
         if(iph->protocol == IPPROTO_TCP)
@@ -155,7 +159,6 @@ static int device_open(struct inode *inode, struct file *file)
 
 	Device_Open++;
 	sprintf(msg, "%d times request, the most recent packet from: %d.%d.%d.%d; to: %d.%d.%d.%d\n", counter++, NIPQUAD(sip), NIPQUAD(dip));
-	//sprintf(msg, "I already told you %d times Hello world!\n", counter++);
 	msg_Ptr = msg;
 	try_module_get(THIS_MODULE);
 
@@ -187,11 +190,19 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 			   size_t length,	/* length of the buffer     */
 			   loff_t * offset)
 {
+	//if(skb_copy_pkt != NULL){
+		unsigned int size = skb_copy_pkt->data_len;
+		msg_Ptr = skb_copy_pkt;
+		//copy_to_user(buffer, skb_copy_pkt->data, size);
+		//return size;
+	//}
+	//return simple_read_from_buffer(filp, size, offset, skb_copy_pkt, size);
 	/*
 	 * Number of bytes actually written to the buffer 
 	 */
 	int bytes_read = 0;
 
+	
 	/*
 	 * If we're at the end of the message, 
 	 * return 0 signifying end of file 
