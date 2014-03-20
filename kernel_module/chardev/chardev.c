@@ -54,6 +54,7 @@ static char msg[BUF_LEN];	/* The msg the device will give when asked */
 static char *msg_Ptr;	/*pointer used to transfer to userspace*/
 struct sk_buff *skb_copy_pkt = NULL;//pointer for copy of skb_buffer
 int first = 0; //test use, for copy packet
+struct sk_buff_head head;//head of the linked list
 
 static struct file_operations fops = {
 	.read = device_read,
@@ -76,15 +77,19 @@ unsigned int hook_for_pkt(unsigned int hooknum,
         dip = iph->daddr;
 		/*first should use a filter/hash to do sampling*/
 
-		if (first == 0){
-		/*if decide to sample, copy the skb_buffer*/
+		if (first < 5){
+			/*if decide to sample, copy the skb_buffer*/
 			skb_copy_pkt = skb_copy(skb, GFP_KERNEL);//gfp_t -> kernel memory allocation, in /usr/src/linux-3.12.13/include/linux/gfp.h
-            printk("copy packet, data: %p, %p\n", skb->mac_header, skb_transport_header(skb));
+			//put the packet into queue
+			skb_queue_tail(&head, skb_copy_pkt);
+	        printk("copy packet, list len: %d,data: %p, %p\n", head.qlen, skb->mac_header, skb_transport_header(skb));
 			//printk("copy packet, data: %s\n", skb_transport_header(skb)->h_dest);
-			printk("copy packet, data: %d, eth:%p, eth->et:%p, diff:%p\n", eth_hdr(skb)->h_proto, eth_hdr(skb), &eth_hdr(skb)->h_proto, eth_hdr(skb)-(eth_hdr(skb)->h_proto));
-            printk("copy packet, data size: %d, %d\n", skb->len, skb_copy_pkt->len);
+			//printk("copy packet, data: %d, eth:%p, eth->et:%p, diff:%p\n", eth_hdr(skb)->h_proto, eth_hdr(skb), &eth_hdr(skb)->h_proto, eth_hdr(skb)-(eth_hdr(skb)->h_proto));
+	        //printk("copy packet, data size: %d, %d\n", skb->len, skb_copy_pkt->len);
 			first += 1;
 		}
+
+
 		//defination of skb_copy: struct sk_buff *skb_copy(const struct sk_buff *skb, gfp_t gfp_mask)
         //iph=(*skb).network_header;
         if(iph->protocol == IPPROTO_TCP)
@@ -104,7 +109,10 @@ unsigned int hook_for_pkt(unsigned int hooknum,
  */
 int init_module(void)
 {
-
+	//init the linked list
+	skb_queue_head_init(&head);
+	
+	//register the hook
 	/* remember which hook you specified */
         nfho.hook = hook_for_pkt;
         nfho.hooknum = 0;                       // NF_IP_PRE_ROUTING;
@@ -113,6 +121,7 @@ int init_module(void)
 
         nf_register_hook(&nfho);
 
+	//register device
         Major = register_chrdev(0, DEVICE_NAME, &fops);
 
 	if (Major < 0) {
@@ -195,13 +204,22 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 			   size_t length,	/* length of the buffer     */
 			   loff_t * offset)
 {
-		unsigned int size = 0;
+	unsigned int size = 0;
+	printk("init skb_copy_pkt pointer to NULL\n");
+	skb_copy_pkt = NULL;//preprocessing
+	if(!skb_queue_empty(&head)){
+		skb_copy_pkt = skb_dequeue_tail(&head);//if not empty, dequeue a socket with buffer
+	    printk("list len: %d\n", head.qlen);
+	}
 	if(skb_copy_pkt != NULL){
 		printk("Received read request from user space, now have skb data length: %d\n", skb_copy_pkt->len);
 		size = skb_copy_pkt->len;
 		msg_Ptr = eth_hdr(skb_copy_pkt);//mac_header;
 		//copy_to_user(buffer, skb_copy_pkt->head, size);
 		//return size;
+	}
+	else{
+		size = 0; //NULL pointer, size must be 0
 	}
 	//return simple_read_from_buffer(filp, size, offset, skb_copy_pkt, size);
 	/*

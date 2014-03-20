@@ -7,10 +7,13 @@ int main(){
 	unsigned int fd, ret = 0;
 	fd=open("/dev/chardev", O_RDONLY);
 	ret=read(fd,buff,1590);
-	buff[ret]='\0';
-	printf("buff: %d ;length: %d bytes\n",buff[12], ret);
-	int i;
-	for(i=0;i<20;i++){
-	printf("buff: %x ;length: %d bytes\n",buff[i], ret);}
+	if(ret){
+		buff[ret]='\0';
+		printf("buff: %d ;length: %d bytes\n",buff[12], ret);
+		int i;
+		for(i=0;i<20;i++){
+		printf(" %x",buff[i]);}
+		printf("\n");
+	}
 	close(fd);
 }
