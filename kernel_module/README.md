@@ -9,3 +9,5 @@ TODO:
 [ ] 3. Snapshot for QEMU (convert disk img: http://blog.sina.com.cn/s/blog\_946b1f810100xvrv.html)  
 [P] 	3.1 Save VM (now have snapshot, not to file)  
 [X] 	3.2 Load VM (with `-loadvm name`)  
+[ ] 4. How to measure start up time?  
+[ ] 5. Automatically create device file under `/dev` (exp: http://hg.berlios.de/repos/kedr/file/b0f4d9d02d35/sources/examples/sample\_target/cfake.c)  
