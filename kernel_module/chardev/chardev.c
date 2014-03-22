@@ -140,14 +140,6 @@ int init_module(void)
 	  return Major;
 	}*/
 
-	//allocate major numbers
-	/*err = alloc_chrdev_region(&chardev, 0, DEV_NUM, DEVICE_NAME);
-	printk(KERN_WARNING "[target] alloc_chrdev_region()\n");
-	if (err < 0) {
-		printk(KERN_WARNING "[target] alloc_chrdev_region() failed\n");
-		return err;
-	}
-	Major = MAJOR(chardev);*/
 	if (alloc_chrdev_region(&chardev, 0, 3, DEVICE_NAME) < 0)
 	{
 		return -1;
@@ -161,28 +153,12 @@ int init_module(void)
 	if (cdev_add(&cdev, chardev, 1) == -1){
 		cleanup_module();
 	}
-	/*
-	dev_t devno = MKDEV(Major, 0);
-	printk(KERN_WARNING "[target] class_create()\n");
-	if (IS_ERR(dev_class)) {
-		err = PTR_ERR(dev_class);
-		printk(KERN_WARNING "[target] class_create() failed\n");
-		//goto fail;
-	}
-	err = 0;
-	err = cdev_add(&cdev, devno, 1);
-	if(err){
-		printk(KERN_WARNING "[target] Error %d while trying to add %s",
-				err, DEVICE_NAME);
-		return err;
-	}
-	*/
-	printk("I was assigned major number %d. To talk to\n", Major);
+	/*printk("I was assigned major number %d. To talk to\n", Major);
 	printk("the driver, create a dev file with\n");
 	printk("'mknod /dev/%s c %d 0'.\n", DEVICE_NAME, Major);
 	printk("Try various minor numbers. Try to cat and echo to\n");
 	printk("the device file.\n");
-	printk("Remove the device file and module when done.\n");
+	printk("Remove the device file and module when done.\n");*/
 
 	return SUCCESS;
 }
@@ -196,6 +172,7 @@ void cleanup_module(void)
 	 * Unregister the device 
 	 */
 	printk(KERN_INFO "Cleaning up module.\n");
+	printk(KERN_INFO "Unregister hook.\n");
 	nf_unregister_hook(&nfho);
 	//int ret=0;
 	//unregister_chrdev(Major, DEVICE_NAME);
