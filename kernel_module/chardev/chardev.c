@@ -15,6 +15,7 @@
 #include <linux/netfilter_ipv4.h>
 #include <linux/ip.h>
 #include <linux/if_ether.h>//for ether header
+#include <linux/cdev.h>//for cdev_init/add
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Richard Zhao");
@@ -39,9 +40,9 @@ static ssize_t device_read(struct file *, char *, size_t, loff_t *);
 static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
 
 #define SUCCESS 0
-#define DEVICE_NAME "chardev"	/* Dev name as it appears in /proc/devices   */
+#define DEVICE_NAME "filter"	/* Dev name as it appears in /proc/devices   */
 #define BUF_LEN 80		/* Max length of the message from the device */
-__be32 sip,dip;
+#define DEV_NUM 1		/* Number of devices */
 
 /* 
  * Global variables are declared as static, so are global within the file. 
@@ -55,6 +56,15 @@ static char *msg_Ptr;	/*pointer used to transfer to userspace*/
 struct sk_buff *skb_copy_pkt = NULL;//pointer for copy of skb_buffer
 int first = 0; //test use, for copy packet
 struct sk_buff_head head;//head of the linked list
+__be32 sip,dip;
+
+/*
+ * Variables for creating chardev automatically
+ */
+
+static struct class *dev_class = NULL;//class pointer
+struct cdev cdev;
+static dev_t chardev;
 
 static struct file_operations fops = {
 	.read = device_read,
@@ -77,7 +87,7 @@ unsigned int hook_for_pkt(unsigned int hooknum,
         dip = iph->daddr;
 		/*first should use a filter/hash to do sampling*/
 
-		if (first < 5){
+		if (first<100){
 			/*if decide to sample, copy the skb_buffer*/
 			skb_copy_pkt = skb_copy(skb, GFP_KERNEL);//gfp_t -> kernel memory allocation, in /usr/src/linux-3.12.13/include/linux/gfp.h
 			//put the packet into queue
@@ -109,26 +119,64 @@ unsigned int hook_for_pkt(unsigned int hooknum,
  */
 int init_module(void)
 {
+	int err = 0;
+	struct device *device = NULL;
 	//init the linked list
 	skb_queue_head_init(&head);
 	
 	//register the hook
 	/* remember which hook you specified */
-        nfho.hook = hook_for_pkt;
-        nfho.hooknum = 0;                       // NF_IP_PRE_ROUTING;
-        nfho.pf = PF_INET;                      // ipv4 protocols
-        nfho.priority =NF_IP_PRI_FIRST;
+    nfho.hook = hook_for_pkt;
+    nfho.hooknum = 0;                       // NF_IP_PRE_ROUTING;
+    nfho.pf = PF_INET;                      // ipv4 protocols
+    nfho.priority =NF_IP_PRI_FIRST;
 
-        nf_register_hook(&nfho);
+    nf_register_hook(&nfho);
 
 	//register device
-        Major = register_chrdev(0, DEVICE_NAME, &fops);
-
+    /*Major = register_chrdev(0, DEVICE_NAME, &fops);
 	if (Major < 0) {
 	  printk(KERN_ALERT "Registering char device failed with %d\n", Major);
 	  return Major;
-	}
+	}*/
 
+	//allocate major numbers
+	/*err = alloc_chrdev_region(&chardev, 0, DEV_NUM, DEVICE_NAME);
+	printk(KERN_WARNING "[target] alloc_chrdev_region()\n");
+	if (err < 0) {
+		printk(KERN_WARNING "[target] alloc_chrdev_region() failed\n");
+		return err;
+	}
+	Major = MAJOR(chardev);*/
+	if (alloc_chrdev_region(&chardev, 0, 3, DEVICE_NAME) < 0)
+	{
+		return -1;
+	}
+	printk(KERN_INFO "<Major, Minor>: <%d, %d>\n", MAJOR(chardev), MINOR(chardev));
+
+	dev_class = class_create(THIS_MODULE, DEVICE_NAME);
+	device = device_create(dev_class, NULL, chardev, NULL, DEVICE_NAME);
+	
+	cdev_init(&cdev, &fops);
+	if (cdev_add(&cdev, chardev, 1) == -1){
+		cleanup_module();
+	}
+	/*
+	dev_t devno = MKDEV(Major, 0);
+	printk(KERN_WARNING "[target] class_create()\n");
+	if (IS_ERR(dev_class)) {
+		err = PTR_ERR(dev_class);
+		printk(KERN_WARNING "[target] class_create() failed\n");
+		//goto fail;
+	}
+	err = 0;
+	err = cdev_add(&cdev, devno, 1);
+	if(err){
+		printk(KERN_WARNING "[target] Error %d while trying to add %s",
+				err, DEVICE_NAME);
+		return err;
+	}
+	*/
 	printk("I was assigned major number %d. To talk to\n", Major);
 	printk("the driver, create a dev file with\n");
 	printk("'mknod /dev/%s c %d 0'.\n", DEVICE_NAME, Major);
@@ -149,10 +197,19 @@ void cleanup_module(void)
 	 */
 	printk(KERN_INFO "Cleaning up module.\n");
 	nf_unregister_hook(&nfho);
-	int ret=0;
-	unregister_chrdev(Major, DEVICE_NAME);
-	if (ret < 0)
-		printk(KERN_ALERT "Error in unregister_chrdev: %d\n", ret);
+	//int ret=0;
+	//unregister_chrdev(Major, DEVICE_NAME);
+	//if (ret < 0)
+	//	printk(KERN_ALERT "Error in unregister_chrdev: %d\n", ret);
+
+	cdev_del(&cdev);
+	printk(KERN_INFO "Destroy device.\n");
+	device_destroy(dev_class, chardev);
+	printk(KERN_INFO "Clean device class.\n");
+	if(dev_class)
+		class_destroy(dev_class);
+	printk(KERN_INFO "Unregister device number.\n");
+	unregister_chrdev_region(chardev, 1);
 	printk(KERN_INFO "Exit.\n");
 }
 

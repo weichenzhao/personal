@@ -5,7 +5,7 @@
 int main(){
 	char buff[1600]="testestestestestestestestestestest";
 	unsigned int fd, ret = 0;
-	fd=open("/dev/chardev", O_RDONLY);
+	fd=open("/dev/filter", O_RDONLY);
 	ret=read(fd,buff,1590);
 	if(ret){
 		buff[ret]='\0';
