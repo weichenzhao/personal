@@ -287,6 +287,8 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 		size--;
 		bytes_read++;
 	}
+	//when finished, free the sk_buffer
+	kfree_skb(skb_copy_pkt);
 
 	/* 
 	 * Most read functions return the number of bytes put into the buffer
