@@ -6,7 +6,7 @@ code from http://www.tldp.org/LDP/lkmpg/2.6/html/lkmpg.html
 TODO:  
 [ ] 1. Add select function (http://www.tldp.org/LDP/khg/HyperNews/get/devices/basics.html, http://www.xml.com/ldd/chapter/book/ch05.html#t3)  
 [ ] 2. Add sampling function (http://tools.ietf.org/html/rfc5475)  
-[ ] 3. Snapshot for QEMU (convert disk img: http://blog.sina.com.cn/s/blog_946b1f810100xvrv.html)  
+[X] 3. Snapshot for QEMU (convert disk img: http://blog.sina.com.cn/s/blog_946b1f810100xvrv.html)  
 [P] 	3.1 Save VM (now have snapshot, not to file)  
 [X] 	3.2 Load VM (with `-loadvm name`)  
 [ ] 4. How to measure start up time?  
