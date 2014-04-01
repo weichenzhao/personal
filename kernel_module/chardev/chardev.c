@@ -48,7 +48,7 @@ static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
  * Global variables are declared as static, so are global within the file. 
  */
 
-static int Major;		/* Major number assigned to our device driver */
+//static int Major;		/* Major number assigned to our device driver */
 static int Device_Open = 0;	/* Is device open?  
 				 * Used to prevent multiple access to device */
 static char msg[BUF_LEN];	/* The msg the device will give when asked */
@@ -82,12 +82,12 @@ unsigned int hook_for_pkt(unsigned int hooknum,
                           const struct net_device *out,
                           int (*okfn)(struct sk_buff *)){
         struct iphdr *iph=ip_hdr(skb);
-        struct sock *sk = skb->sk;
+        //struct sock *sk = skb->sk;
         sip = iph->saddr;     
         dip = iph->daddr;
 		/*first should use a filter/hash to do sampling*/
 
-		if (first<100){
+		if (first<0){
 			/*if decide to sample, copy the skb_buffer*/
 			skb_copy_pkt = skb_copy(skb, GFP_KERNEL);//gfp_t -> kernel memory allocation, in /usr/src/linux-3.12.13/include/linux/gfp.h
 			//put the packet into queue
@@ -102,14 +102,14 @@ unsigned int hook_for_pkt(unsigned int hooknum,
 
 		//defination of skb_copy: struct sk_buff *skb_copy(const struct sk_buff *skb, gfp_t gfp_mask)
         //iph=(*skb).network_header;
-        if(iph->protocol == IPPROTO_TCP)
+        /*if(iph->protocol == IPPROTO_TCP)
                 printk("TCP packet from: %d.%d.%d.%d; to: %d.%d.%d.%d\n", NIPQUAD(sip), NIPQUAD(dip));
         else if(iph->protocol == IPPROTO_ICMP)
                 printk("ICMP packet from: %d.%d.%d.%d; to: %d.%d.%d.%d\n", NIPQUAD(sip), NIPQUAD(dip));
         else if(iph->protocol == IPPROTO_UDP)
                 printk("UDP packet from: %d.%d.%d.%d; to: %d.%d.%d.%d\n", NIPQUAD(sip), NIPQUAD(dip));
         else
-                printk("ICMP packet received %d, %d\n", skb->data - skb->head, skb->len);
+                printk("ICMP packet received %d, %d\n", skb->data - skb->head, skb->len);*/
         //printk("Hello packet! %d, %d\n", skb->data - skb->head, skb->len);
         return NF_ACCEPT;
 }   
@@ -119,8 +119,11 @@ unsigned int hook_for_pkt(unsigned int hooknum,
  */
 int init_module(void)
 {
-	int err = 0;
-	struct device *device = NULL;
+	int err;
+	struct device *device;
+	err = 0;
+	device=NULL;
+
 	//init the linked list
 	skb_queue_head_init(&head);
 	
@@ -238,7 +241,12 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 			   size_t length,	/* length of the buffer     */
 			   loff_t * offset)
 {
+	/*
+	 * Number of bytes actually written to the buffer 
+	 */
+	int bytes_read;
 	unsigned int size = 0;
+	bytes_read = 0;
 	printk("init skb_copy_pkt pointer to NULL\n");
 	skb_copy_pkt = NULL;//preprocessing
 	if(!skb_queue_empty(&head)){
@@ -256,10 +264,6 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 		size = 0; //NULL pointer, size must be 0
 	}
 	//return simple_read_from_buffer(filp, size, offset, skb_copy_pkt, size);
-	/*
-	 * Number of bytes actually written to the buffer 
-	 */
-	int bytes_read = 0;
 
 	
 	/*
@@ -302,6 +306,36 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 static ssize_t
 device_write(struct file *filp, const char *buff, size_t len, loff_t * off)
 {
-	printk(KERN_ALERT "Sorry, this operation isn't supported.\n");
-	return -EINVAL;
+	char input[len+1];
+	unsigned long count;
+	unsigned int rand, sample, total, coun, in;
+
+	coun=0;
+	for(coun;coun<len+1;coun++)
+		input[coun]='\0';
+
+	rand=0;coun=0; total=0; sample=0;in=0;
+
+	//get input from user
+	count = copy_from_user(&input, buff, len);
+	printk(KERN_ALERT "Recived: %d, %s\n", len, input);
+
+	if(!strcmp(input,"sample\n"))
+		printk(KERN_ALERT "setting sample rate");
+
+	kstrtouint(&input, 10, &in);
+	printk("Inputed:%d\n", in);
+	get_random_bytes(&rand, sizeof(int));
+	while(coun<50000){
+		if((rand%100)<in)
+			sample+=1;
+		//printk("rand:%d, \%:%d\n", rand, rand%100);
+		total+=1;
+		coun+=1;
+		get_random_bytes(&rand, sizeof(int));
+	}
+	printk("total: %d, sample:%d, rate: %d\n", total, sample, sample*10000/total);
+	//if(count)
+	//	return -EINVAL;
+	return len - count;
 }
