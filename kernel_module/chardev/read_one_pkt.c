@@ -22,6 +22,8 @@ char* read_pkt(){
 		printf("\n");
 	}
 	close(fd);
+	if(pkt_pointer == NULL)
+		printf("null pointer dectected!\n");
 	return pkt_pointer;
 }
 

@@ -1,16 +1,11 @@
-/*
- *  chardev.c: Creates a read-only char device that says how many times
- *  you've read from the dev file
- */
-
 #include <linux/fs.h>
 #include <asm/uaccess.h>	/* for put_user */
-#include <linux/module.h>    // included for all kernel modules
-#include <linux/kernel.h>    // included for KERN_INFO
-#include <linux/init.h>      // included for __init and __exit macros
+#include <linux/module.h>   // included for all kernel modules
+#include <linux/kernel.h>   // included for KERN_INFO
+#include <linux/init.h>     // included for __init and __exit macros
 #include <linux/netfilter.h>
 #include <linux/vmalloc.h>
-#include <linux/types.h>     // included for __be32 type
+#include <linux/types.h>    // included for __be32 type
 
 #include <linux/netfilter_ipv4.h>
 #include <linux/ip.h>
@@ -58,6 +53,7 @@ int first = 0; //test use, for copy packet
 struct sk_buff_head head;//head of the linked list
 __be32 sip,dip;
 int sample_rate=0;
+static DECLARE_WAIT_QUEUE_HEAD(wq);//declear wait queue for block I/O
 
 /*
  * Variables for creating chardev automatically
@@ -84,7 +80,6 @@ unsigned int hook_for_pkt(unsigned int hooknum,
                           int (*okfn)(struct sk_buff *)){
         struct iphdr *iph=ip_hdr(skb);
 		unsigned int rand;//for random number generator
-        //struct sock *sk = skb->sk;
         sip = iph->saddr;     
         dip = iph->daddr;
 		/*first should use a filter/hash to do sampling*/
@@ -97,23 +92,7 @@ unsigned int hook_for_pkt(unsigned int hooknum,
 			//put the packet into queue
 			skb_queue_tail(&head, skb_copy_pkt);
 	        printk("copy packet, list len: %d,data: %p, %p\n", head.qlen, skb->mac_header, skb_transport_header(skb));
-			//printk("copy packet, data: %s\n", skb_transport_header(skb)->h_dest);
-			//printk("copy packet, data: %d, eth:%p, eth->et:%p, diff:%p\n", eth_hdr(skb)->h_proto, eth_hdr(skb), &eth_hdr(skb)->h_proto, eth_hdr(skb)-(eth_hdr(skb)->h_proto));
-	        //printk("copy packet, data size: %d, %d\n", skb->len, skb_copy_pkt->len);
 		}
-
-
-		//defination of skb_copy: struct sk_buff *skb_copy(const struct sk_buff *skb, gfp_t gfp_mask)
-        //iph=(*skb).network_header;
-        /*if(iph->protocol == IPPROTO_TCP)
-                printk("TCP packet from: %d.%d.%d.%d; to: %d.%d.%d.%d\n", NIPQUAD(sip), NIPQUAD(dip));
-        else if(iph->protocol == IPPROTO_ICMP)
-                printk("ICMP packet from: %d.%d.%d.%d; to: %d.%d.%d.%d\n", NIPQUAD(sip), NIPQUAD(dip));
-        else if(iph->protocol == IPPROTO_UDP)
-                printk("UDP packet from: %d.%d.%d.%d; to: %d.%d.%d.%d\n", NIPQUAD(sip), NIPQUAD(dip));
-        else
-                printk("ICMP packet received %d, %d\n", skb->data - skb->head, skb->len);*/
-        //printk("Hello packet! %d, %d\n", skb->data - skb->head, skb->len);
         return NF_ACCEPT;
 }   
 
@@ -139,13 +118,6 @@ int init_module(void)
 
     nf_register_hook(&nfho);
 
-	//register device
-    /*Major = register_chrdev(0, DEVICE_NAME, &fops);
-	if (Major < 0) {
-	  printk(KERN_ALERT "Registering char device failed with %d\n", Major);
-	  return Major;
-	}*/
-
 	if (alloc_chrdev_region(&chardev, 0, 3, DEVICE_NAME) < 0)
 	{
 		return -1;
@@ -159,12 +131,6 @@ int init_module(void)
 	if (cdev_add(&cdev, chardev, 1) == -1){
 		cleanup_module();
 	}
-	/*printk("I was assigned major number %d. To talk to\n", Major);
-	printk("the driver, create a dev file with\n");
-	printk("'mknod /dev/%s c %d 0'.\n", DEVICE_NAME, Major);
-	printk("Try various minor numbers. Try to cat and echo to\n");
-	printk("the device file.\n");
-	printk("Remove the device file and module when done.\n");*/
 
 	return SUCCESS;
 }
@@ -174,17 +140,18 @@ int init_module(void)
  */
 void cleanup_module(void)
 {
-	/* 
-	 * Unregister the device 
-	 */
+	skb_copy_pkt = NULL;//preprocessing
+	while(!skb_queue_empty(&head)){
+		skb_copy_pkt = skb_dequeue_tail(&head);//if not empty, dequeue a socket with buffer
+		kfree_skb(skb_copy_pkt);
+	}
 	printk(KERN_INFO "Cleaning up module.\n");
 	printk(KERN_INFO "Unregister hook.\n");
 	nf_unregister_hook(&nfho);
-	//int ret=0;
-	//unregister_chrdev(Major, DEVICE_NAME);
-	//if (ret < 0)
-	//	printk(KERN_ALERT "Error in unregister_chrdev: %d\n", ret);
 
+	/* 
+	 * Unregister the device 
+	 */
 	cdev_del(&cdev);
 	printk(KERN_INFO "Destroy device.\n");
 	device_destroy(dev_class, chardev);
@@ -252,34 +219,23 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 	bytes_read = 0;
 	printk("init skb_copy_pkt pointer to NULL\n");
 	skb_copy_pkt = NULL;//preprocessing
+	msg_Ptr = NULL;
+
 	if(!skb_queue_empty(&head)){
 		skb_copy_pkt = skb_dequeue_tail(&head);//if not empty, dequeue a socket with buffer
 	    printk("list len: %d\n", head.qlen);
-	}
-	if(skb_copy_pkt != NULL){
 		printk("Received read request from user space, now have skb data length: %d\n", skb_copy_pkt->len);
 		size = skb_copy_pkt->len;
 		msg_Ptr = eth_hdr(skb_copy_pkt);//mac_header;
-		//copy_to_user(buffer, skb_copy_pkt->head, size);
-		//return size;
 	}
 	else{
 		size = 0; //NULL pointer, size must be 0
-	}
-	//return simple_read_from_buffer(filp, size, offset, skb_copy_pkt, size);
-
-	
-	/*
-	 * If we're at the end of the message, 
-	 * return 0 signifying end of file 
-	 */
-	if (*msg_Ptr == 0)
 		return 0;
-
+	}
+	
 	/* 
 	 * Actually put the data into the buffer 
 	 */
-	//while (length && *msg_Ptr) {
 	while (length && size) {
 		/* 
 		 * The buffer is in the user data segment, not the kernel 
@@ -309,39 +265,22 @@ static ssize_t
 device_write(struct file *filp, const char *buff, size_t len, loff_t * off)
 {
 	char input[len+1];
-	char *parsed;
+	//char *parsed;
 	unsigned long count;
-	//testing for rand
-	unsigned int rand, sample, total, coun, in;
+	int  coun, in=0;
 
 	//init for input array
-	coun=0;
-	for(coun;coun<len+1;coun++)
+	for(coun=0;coun<len+1;coun++)
 		input[coun]='\0';
-
-	rand=0;coun=0; total=0; sample=0;in=0;
 
 	//get input from user
 	count = copy_from_user(&input, buff, len);
 	//printk(KERN_ALERT "Recived: %d, %s\n", len, input);
 	
-
 	if(!strncasecmp(input,"sample",6)){//compare first 6 bytes
 		kstrtouint(&input[7], 10, &in);//go over 'sample '
 		printk(KERN_ALERT "setting sample rate to: %d%\n", in);
 		sample_rate=in;
-		/*get_random_bytes(&rand, sizeof(int));
-		while(coun<50000){
-			if((rand%100)<in)
-				sample+=1;
-			//printk("rand:%d, \%:%d\n", rand, rand%100);
-			total+=1;
-			coun+=1;
-			get_random_bytes(&rand, sizeof(int));
-		}
-		printk("total: %d, sample:%d, rate: %d\n", total, sample, sample*10000/total);*/
 	}
-	//if(count)
-	//	return -EINVAL;
 	return len - count;
 }
