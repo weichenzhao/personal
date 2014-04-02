@@ -57,6 +57,7 @@ struct sk_buff *skb_copy_pkt = NULL;//pointer for copy of skb_buffer
 int first = 0; //test use, for copy packet
 struct sk_buff_head head;//head of the linked list
 __be32 sip,dip;
+int sample_rate=0;
 
 /*
  * Variables for creating chardev automatically
@@ -82,12 +83,15 @@ unsigned int hook_for_pkt(unsigned int hooknum,
                           const struct net_device *out,
                           int (*okfn)(struct sk_buff *)){
         struct iphdr *iph=ip_hdr(skb);
+		unsigned int rand;//for random number generator
         //struct sock *sk = skb->sk;
         sip = iph->saddr;     
         dip = iph->daddr;
 		/*first should use a filter/hash to do sampling*/
 
-		if (first<0){
+		
+		get_random_bytes(&rand, sizeof(int));
+		if((rand%100) < sample_rate){
 			/*if decide to sample, copy the skb_buffer*/
 			skb_copy_pkt = skb_copy(skb, GFP_KERNEL);//gfp_t -> kernel memory allocation, in /usr/src/linux-3.12.13/include/linux/gfp.h
 			//put the packet into queue
@@ -96,7 +100,6 @@ unsigned int hook_for_pkt(unsigned int hooknum,
 			//printk("copy packet, data: %s\n", skb_transport_header(skb)->h_dest);
 			//printk("copy packet, data: %d, eth:%p, eth->et:%p, diff:%p\n", eth_hdr(skb)->h_proto, eth_hdr(skb), &eth_hdr(skb)->h_proto, eth_hdr(skb)-(eth_hdr(skb)->h_proto));
 	        //printk("copy packet, data size: %d, %d\n", skb->len, skb_copy_pkt->len);
-			first += 1;
 		}
 
 
@@ -277,7 +280,6 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 	 * Actually put the data into the buffer 
 	 */
 	//while (length && *msg_Ptr) {
-	//只要有0酒不继续了....  = =
 	while (length && size) {
 		/* 
 		 * The buffer is in the user data segment, not the kernel 
@@ -307,9 +309,12 @@ static ssize_t
 device_write(struct file *filp, const char *buff, size_t len, loff_t * off)
 {
 	char input[len+1];
+	char *parsed;
 	unsigned long count;
+	//testing for rand
 	unsigned int rand, sample, total, coun, in;
 
+	//init for input array
 	coun=0;
 	for(coun;coun<len+1;coun++)
 		input[coun]='\0';
@@ -318,23 +323,24 @@ device_write(struct file *filp, const char *buff, size_t len, loff_t * off)
 
 	//get input from user
 	count = copy_from_user(&input, buff, len);
-	printk(KERN_ALERT "Recived: %d, %s\n", len, input);
+	//printk(KERN_ALERT "Recived: %d, %s\n", len, input);
+	
 
-	if(!strcmp(input,"sample\n"))
-		printk(KERN_ALERT "setting sample rate");
-
-	kstrtouint(&input, 10, &in);
-	printk("Inputed:%d\n", in);
-	get_random_bytes(&rand, sizeof(int));
-	while(coun<50000){
-		if((rand%100)<in)
-			sample+=1;
-		//printk("rand:%d, \%:%d\n", rand, rand%100);
-		total+=1;
-		coun+=1;
-		get_random_bytes(&rand, sizeof(int));
+	if(!strncasecmp(input,"sample",6)){//compare first 6 bytes
+		kstrtouint(&input[7], 10, &in);//go over 'sample '
+		printk(KERN_ALERT "setting sample rate to: %d%\n", in);
+		sample_rate=in;
+		/*get_random_bytes(&rand, sizeof(int));
+		while(coun<50000){
+			if((rand%100)<in)
+				sample+=1;
+			//printk("rand:%d, \%:%d\n", rand, rand%100);
+			total+=1;
+			coun+=1;
+			get_random_bytes(&rand, sizeof(int));
+		}
+		printk("total: %d, sample:%d, rate: %d\n", total, sample, sample*10000/total);*/
 	}
-	printk("total: %d, sample:%d, rate: %d\n", total, sample, sample*10000/total);
 	//if(count)
 	//	return -EINVAL;
 	return len - count;
