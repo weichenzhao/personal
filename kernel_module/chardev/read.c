@@ -3,7 +3,7 @@
 #include <fcntl.h>
 
 int main(){
-	char buff[1600]="testestestestestestestestestestest";
+	char buff[1600];
 	unsigned int fd, ret = 0;
 	fd=open("/dev/filter", O_RDONLY);
 	ret=read(fd,buff,1590);
@@ -16,4 +16,5 @@ int main(){
 		printf("\n");
 	}
 	close(fd);
+	return 0;
 }
