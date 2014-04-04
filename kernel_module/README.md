@@ -8,7 +8,7 @@ TODO:
 [ ] 2. Add block I/O  
 [ ] 3. Add sampling function (http://tools.ietf.org/html/rfc5475)  
 [X]   3.1 Based on random gen  
-[ ]   3.2 Based on hash function
+[ ]   3.2 Based on hash function  
 [X] 4. Snapshot for QEMU (convert disk img: http://blog.sina.com.cn/s/blog_946b1f810100xvrv.html)  
 [P] 	4.1 Save VM (now have snapshot, not to file)  
 [X] 	4.2 Load VM (with `-loadvm name`)  
