@@ -49,6 +49,7 @@ static int Device_Open = 0;	/* Is device open?
 static char msg[BUF_LEN];	/* The msg the device will give when asked */
 static char *msg_Ptr;	/*pointer used to transfer to userspace*/
 struct sk_buff *skb_copy_pkt = NULL;//pointer for copy of skb_buffer
+struct sk_buff *skb_copy_pktin = NULL;//pointer for copy of skb_buffer
 int first = 0; //test use, for copy packet
 struct sk_buff_head head;//head of the linked list
 __be32 sip,dip;
@@ -78,6 +79,7 @@ unsigned int hook_for_pkt(unsigned int hooknum,
                           const struct net_device *in,
                           const struct net_device *out,
                           int (*okfn)(struct sk_buff *)){
+		BUG_ON(skb==NULL);
         struct iphdr *iph=ip_hdr(skb);
 		unsigned int rand;//for random number generator
         sip = iph->saddr;     
@@ -88,9 +90,10 @@ unsigned int hook_for_pkt(unsigned int hooknum,
 		get_random_bytes(&rand, sizeof(int));
 		if((rand%100) < sample_rate){
 			/*if decide to sample, copy the skb_buffer*/
-			skb_copy_pkt = skb_copy(skb, GFP_KERNEL);//gfp_t -> kernel memory allocation, in /usr/src/linux-3.12.13/include/linux/gfp.h
+			skb_copy_pktin = skb_copy(skb, GFP_KERNEL);//gfp_t -> kernel memory allocation, in /usr/src/linux-3.12.13/include/linux/gfp.h
+			BUG_ON(skb_copy_pktin==NULL);
 			//put the packet into queue
-			skb_queue_tail(&head, skb_copy_pkt);
+			skb_queue_tail(&head, skb_copy_pktin);
 	        printk("copy packet, list len: %d,data: %p, %p\n", head.qlen, skb->mac_header, skb_transport_header(skb));
 		}
         return NF_ACCEPT;
@@ -211,6 +214,7 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 			   size_t length,	/* length of the buffer     */
 			   loff_t * offset)
 {
+	BUG_ON(buffer==NULL);
 	/*
 	 * Number of bytes actually written to the buffer 
 	 */
@@ -230,9 +234,10 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 	}
 	else{
 		size = 0; //NULL pointer, size must be 0
-		return 0;
+		return 0;//return EOF
 	}
 	
+	BUG_ON(skb_copy_pkt==NULL);
 	/* 
 	 * Actually put the data into the buffer 
 	 */
@@ -250,6 +255,7 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 		bytes_read++;
 	}
 	//when finished, free the sk_buffer
+	BUG_ON(skb_copy_pkt==NULL);
 	kfree_skb(skb_copy_pkt);
 
 	/* 
@@ -264,6 +270,7 @@ static ssize_t device_read(struct file *filp,	/* see include/linux/fs.h   */
 static ssize_t
 device_write(struct file *filp, const char *buff, size_t len, loff_t * off)
 {
+	BUG_ON(buff==NULL);
 	char input[len+1];
 	//char *parsed;
 	unsigned long count;
