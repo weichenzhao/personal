@@ -27,6 +27,7 @@
 
 
 
+int count;
 u_int16_t handle_ethernet
         (u_char *args,const struct pcap_pkthdr* pkthdr,const u_char*
         packet);
@@ -38,6 +39,9 @@ void my_callback(u_char *args,const struct pcap_pkthdr* pkthdr,const u_char*
 {
     u_int16_t type = handle_ethernet(args,pkthdr,packet);
 
+	count += 1;
+	if(count%1000==0)
+		printf("num of pkt: %d\n", count);
     if(type == ETHERTYPE_IP)
     {/* handle IP packet */
     }else if(type == ETHERTYPE_ARP)
@@ -57,23 +61,19 @@ u_int16_t handle_ethernet
     /* lets start with the ether header... */
     eptr = (struct ether_header *) packet;
 
-    fprintf(stdout,"ethernet header source: %s"
-            ,ether_ntoa((const struct ether_addr *)&eptr->ether_shost));
-    fprintf(stdout," destination: %s "
-            ,ether_ntoa((const struct ether_addr *)&eptr->ether_dhost));
 
     /* check to see if we have an ip packet */
     if (ntohs (eptr->ether_type) == ETHERTYPE_IP)
     {
-        fprintf(stdout,"(IP)\n");
+		;
     }else  if (ntohs (eptr->ether_type) == ETHERTYPE_ARP)
     {
-        fprintf(stdout,"(ARP)\n");
+		;
     }else  if (ntohs (eptr->ether_type) == ETHERTYPE_REVARP)
     {
-        fprintf(stdout,"(RARP)\n");
+		;
     }else {
-        fprintf(stdout,"(?)\n");
+		;
         /*exit(1);*/
     }
 
@@ -107,7 +107,7 @@ int main(int argc,char **argv)
 
     /* open device for reading. NOTE: defaulting to
      * promiscuous mode*/
-    descr = pcap_open_live(dev,BUFSIZ,1,-1,errbuf);
+    descr = pcap_open_live(dev,BUFSIZ,1,20,errbuf);
     if(descr == NULL)
     { printf("pcap_open_live(): %s\n",errbuf); exit(1); }
 
@@ -125,6 +125,7 @@ int main(int argc,char **argv)
 
     /* ... and loop */ 
 	/*while(1)*/
+	count = 0;
         pcap_loop(descr,0,my_callback,args);
 
     fprintf(stdout,"\nfinished\n");
