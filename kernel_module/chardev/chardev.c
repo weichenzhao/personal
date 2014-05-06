@@ -93,10 +93,11 @@ unsigned int hook_for_pkt(unsigned int hooknum,
 			skb_copy_pktin = skb_copy(skb, GFP_KERNEL);//gfp_t -> kernel memory allocation, in /usr/src/linux-3.12.13/include/linux/gfp.h
 			BUG_ON(skb_copy_pktin==NULL);
 			//put the packet into queue
-			skb_queue_tail(&head, skb_copy_pktin);
-	        printk("copy packet, list len: %d,data: %p, %p\n", head.qlen, skb->mac_header, skb_transport_header(skb));
+			//skb_queue_tail(&head, skb_copy_pktin);
+	        	//printk("copy packet, list len: %d,data: %p, %p\n", head.qlen, skb->mac_header, skb_transport_header(skb));
 		}
-        return NF_ACCEPT;
+		kfree_skb(skb);
+        return NF_STOP;
 }   
 
 /*
