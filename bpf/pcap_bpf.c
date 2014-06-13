@@ -9,8 +9,11 @@ int main(){
     pcap_t *pcap = pcap_open_dead( DLT_EN10MB, snaplen );
     struct bpf_program prog;
     int netmask = 0;
-    char *rule = "ip";
-    pcap_compile( pcap, &prog, rule, 0, netmask );
+    char *rule = "ether[0] & 1 != 0";
+    if(pcap_compile( pcap, &prog, rule, 0, netmask )<0){
+        printf("Fail to generate rule\n");
+        return -1;
+    }
     printf("len: %d\n", prog.bf_len);
     int i=0;
     for(i; i<prog.bf_len; i++){
