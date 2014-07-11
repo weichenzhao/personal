@@ -1,20 +1,11 @@
 #!/usr/bin/env python
-import eunuchs.tuntap
 from subprocess import call
 import os
-
-class Tap():
-   def __init__( self, ifname=None, hw=None, ip=None, netMask=None,
-                 ip6Addr=None, ifprefix='tap'):
-      usr = os.popen("whoami").read()
-      ret = call(["/usr/bin/sudo", "/usr/sbin/tunctl", "-u", usr[0:len(usr)-1], "-t", "tap0"])
-      call(["/usr/bin/sudo", "/usr/sbin/tunctl", "-d", "tap0"])
 
 #dev = Tap()
 import fcntl
 #import os
 import struct
-import subprocess
 # Some constants used to ioctl the device file. I got them by a simple C
 # program.
 TUNSETIFF = 0x400454ca
