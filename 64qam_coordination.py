@@ -103,7 +103,7 @@ def randomTest():
                   added.append(num)
                   break
             #plt.text(getCoord256(num)[0], getCoord256(num)[1], '%s' % num , color='red')
-            #plt.text(getCoord2562(num)[0], getCoord2562(num)[1], '%s' % num , color='blue')   
+            #plt.text(getCoord256_2(num)[0], getCoord256_2(num)[1], '%s' % num , color='blue')   
             matrix1[(getCoord256(num)[0]+15 )/ 2][(getCoord256(num)[1]+15) / 2] = 1
             matrix2[(getCoord256_2(num)[0]+15)/ 2][(getCoord256_2(num)[1]+15)/ 2] = 1
          np.savetxt('matrix1.txt', matrix1, fmt='%1u') 
@@ -141,7 +141,7 @@ def randomTest10Elem():
                   break
             for l in range(10):
                #plt.text(getCoord256(num+l)[0], getCoord256(num+l)[1], '%s' % (num+l) , color='red')
-               #plt.text(getCoord2562(num+l)[0], getCoord2562(num+l)[1], '%s' % (num+l) , color='blue')   
+               #plt.text(getCoord256_2(num+l)[0], getCoord256_2(num+l)[1], '%s' % (num+l) , color='blue')   
                matrix1[(getCoord256(num+l)[0]+15 )/ 2][(getCoord256(num+l)[1]+15) / 2] = 1
                matrix2[(getCoord256_2(num+l)[0]+15)/ 2][(getCoord256_2(num+l)[1]+15)/ 2] = 1
 
@@ -159,5 +159,37 @@ def randomTest10Elem():
 
       print "average for", ranges*10,"random 10 elem:\t\t", "{0:.4f}".format(ave1/(ranges*10.0*times)), " {0:.4f}".format(ave2/(ranges*10.0*times))
 
+def showCase( point_number ):
+   ranges = point_number
+   matrix1 = np.arange(256).reshape((16,16))
+   #matrix2 = np.arange(256).reshape((16,16))
+   for j in range(16):
+      for k in range(16):
+         matrix1[k][j] = 0
+         #matrix2[k][j] = 0
+   added = []
+   for i in range(ranges):
+      while True:
+         num = randrange( 256 )
+         if num not in added:
+            added.append(num)
+            break
+      plt.text(getCoord256(num)[0], getCoord256(num)[1], '%s' % (num) , color='red')
+      #plt.text(getCoord256_2(num)[0], getCoord256_2(num)[1], '%s' % (num) , color='blue')   
+      matrix1[(getCoord256(num)[0]+15 )/ 2][(getCoord256(num)[1]+15) / 2] = 1
+      #matrix2[(getCoord256_2(num)[0]+15)/ 2][(getCoord256_2(num)[1]+15)/ 2] = 1
+   np.savetxt('matrix1.txt', matrix1, fmt='%1u')
+   #np.savetxt('matrix2.txt', matrix2, fmt='%1u')
+
+   ret1 = int(os.popen('cat matrix1.txt | ./a.out').read())
+   #ret2 = int(os.popen('cat matrix2.txt | ./a.out').read())
+   print ret1
+
+   plt.xlim(-20, 20)
+   plt.ylim(-20, 20)
+   plt.show()
+
 randomTest()
 randomTest10Elem()
+showCase( 50 )
+showCase( 20 )
