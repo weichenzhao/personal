@@ -16,7 +16,7 @@ size_t dfs(const Matrix& mat, int i, int j, Matrix& visited)
     // 检测下标是否在合理的范围内
     if (0 <= i && i < mat.size() && 0 <= j && j < mat[0].size()) {
         // 如果当前元素为 1 且未访问过，则递归地访问上下左右相邻的元素
-        if (mat[i][j] && !visited[i][j]) {
+        if (mat[i][j] == -1 && !visited[i][j]) {
             visited[i][j] = true;
             dfs(mat, i - 1, j, visited);
             dfs(mat, i + 1, j, visited);
