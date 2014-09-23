@@ -116,7 +116,7 @@ int init_module(void)
 	//register the hook
 	/* remember which hook you specified */
     nfho.hook = hook_for_pkt;
-    nfho.hooknum = 0;                       // NF_IP_PRE_ROUTING;
+    nfho.hooknum = 0;                       // NF_IP_PRE_ROUTING; 3 for NF_IP_LOCAL_OUT
     nfho.pf = PF_INET;                      // ipv4 protocols
     nfho.priority =NF_IP_PRI_FIRST;
 
