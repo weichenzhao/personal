@@ -15,7 +15,7 @@ colorscheme desert
 
 "set highlight
 se cursorline
-highlight cursorline ctermbg=darkgray cterm=NONE
+highlight cursorline ctermbg=darkred cterm=NONE
 
 """"""""""""""""""""""""""""""
 " Tag list (ctags)
