@@ -6,10 +6,44 @@
 #include <sys/socket.h>
 #include <linux/if_ether.h>
 #include <linux/if_packet.h>
-void print_hex(char* s, size_t start, size_t end){
-   for(i=start;i<end;i++){
-      ;
-   }
+
+void print_hex_ascii_line(const u_char *payload, int len, int offset){
+	int i;
+	int gap;
+	const u_char *ch;
+	/* offset */
+	printf("%05d   ", offset);
+	/* hex */
+	ch = payload;
+	for(i = 0; i < len; i++) {
+		printf("%02x ", *ch);
+		ch++;
+		/* print extra space after 8th byte for visual aid */
+		if (i == 7)
+			printf(" ");
+	}
+	/* print space to handle line less than 8 bytes */
+	if (len < 8)
+		printf(" ");
+	/* fill hex gap with spaces if not full line */
+	if (len < 16) {
+		gap = 16 - len;
+		for (i = 0; i < gap; i++) {
+			printf("   ");
+		}
+	}
+	printf("   ");
+	/* ascii (if printable) */
+	ch = payload;
+	for(i = 0; i < len; i++) {
+		if (isprint(*ch))
+			printf("%c", *ch);
+		else
+			printf(".");
+		ch++;
+	}
+	printf("\n");
+return;
 }
 
 int main(){
@@ -41,13 +75,13 @@ int main(){
    printf("binding %x\n", sll.sll_protocol);
 
    //send(handle, "100", 3, 0);
-   char buffer[1024];
-   size_t ret = 0;
+   u_char buffer[1024];
+   int ret = 0;
    while(1){
       memset(&buffer, 0, sizeof(buffer));
       ret = recv(handle, buffer, sizeof(buffer), 0);
       if(ret > 0)
-         print_hex(buffer, 0, ret);
+         print_hex_ascii_line(buffer, ret, 0);
       //printf("%s \n", buffer);
    }
 
